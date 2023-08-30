@@ -1,6 +1,7 @@
 from config import CONN, CURSOR
 
 class Song:
+    all = []
 
     def __init__(self, name, album):
         self.id = None
@@ -38,6 +39,24 @@ class Song:
         CURSOR.execute(sql, (self.name, self.album))
         self.id = CURSOR.execute("SELECT last_insert_rowid() FROM songs").fetchone()[0]
         CONN.commit()
+    
+    
+    @classmethod
+    def new_from_db(cls, row):
+        song = cls(row[1], row[2])
+        song.id = row[0]
+    
+
+    @classmethod
+    def get_all(cls):
+        sql = """
+            SELECT *
+            FROM songs
+        """
+
+        all = CURSOR.execute(sql).fetchall()
+
+        cls.all = [cls.new_from_db(row) for row in all]
 
 Song.create_table()
 song = Song.create("Hello2", "26")
@@ -58,9 +77,9 @@ CURSOR.execute('SELECT * FROM songs')
 songs = CURSOR.fetchall()
 print(songs)
 
-# query = "DROP TABLE IF EXISTS song;"
-# CURSOR.execute(query)
+query = "DROP TABLE IF EXISTS song;"
+CURSOR.execute(query)
 
-# # Commit the changes and close the connection
-# CONN.commit()
-# CONN.close()
+# Commit the changes and close the connection
+CONN.commit()
+
